@@ -3,6 +3,7 @@ import { SheetModel } from './engine/engine';
 import { Grid } from './grid/Grid';
 import { ProgressProvider, useStore } from './state/store';
 import { ExercisePage } from './ui/ExercisePage';
+import { XlsxButton } from './ui/ExercisePlayer';
 import { ModulePage, Parcours } from './ui/ModulePage';
 import { href, Route, useRoute } from './ui/router';
 import { Home } from './ui/Home';
@@ -18,6 +19,9 @@ function Sandbox() {
       <h1>Bac à sable</h1>
       <p>Une feuille libre pour essayer ce que tu veux. Tape <code>=</code> puis clique sur une cellule pour insérer sa référence.</p>
       <Grid model={model} rows={60} cols={14} height={520} />
+      <div className="ex-actions">
+        <XlsxButton model={model} name="bac-a-sable.xlsx" />
+      </div>
     </div>
   );
 }

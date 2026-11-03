@@ -70,8 +70,8 @@ export interface QuizExercise extends Base {
   answer: number;
   /** Explication par mauvaise réponse (même index que choices) */
   why: Rich[];
-  /** Petit graphique / tableau d'illustration */
-  illustration?: 'bars' | 'line' | 'pie' | 'none';
+  /** Petit graphique d'illustration */
+  illustration?: { type: 'bars' | 'hbars' | 'line' | 'pie'; labels: string[]; values: number[]; title?: string; min?: number };
   excel?: ExcelTask;
 }
 

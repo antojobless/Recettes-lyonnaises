@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { CellInfo } from '../engine/engine';
+import { CellInfo, SheetModel } from '../engine/engine';
 import { addr } from '../engine/formula';
 import { CheckResult, checkFormula, checkSelect, expandTarget, expectedValues, modelFromSetup } from '../exercises/checker';
 import { hintsOf } from '../exercises/hints';
@@ -48,6 +48,29 @@ export function useExerciseState(ex: Exercise, props: PlayerProps) {
     [ex.id, hints, solved, record],
   );
   return { lang, hints, setHints, result, setResult, solved, submit };
+}
+
+/** Exporte la feuille de l'élève en .xlsx, formules comprises, pour continuer dans le vrai Excel. */
+export function XlsxButton({ model, name }: { model: SheetModel; name: string }) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <button
+      className="btn ghost"
+      disabled={busy}
+      title="Télécharge cette feuille, avec tes formules, pour l’ouvrir dans Excel"
+      onClick={async () => {
+        setBusy(true);
+        try {
+          const { buildXlsx, download } = await import('../pivot/xlsx');
+          download(await buildXlsx([{ name: 'Feuil1', model }]), name);
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      ⬇ Exporter en .xlsx
+    </button>
+  );
 }
 
 export function HintsBox({ ex, hints, setHints, lang, disabled }: { ex: Exercise; hints: number; setHints: (n: number) => void; lang: 'fr' | 'en'; disabled?: boolean }) {
@@ -152,6 +175,7 @@ function GridExercise(props: PlayerProps & { ex: FormulaExercise | SelectExercis
         >
           Réinitialiser
         </button>
+        <XlsxButton model={model} name={`exercice-${ex.id}.xlsx`} />
         {ex.kind === 'select' && <span className="muted">Sélection actuelle : <code>{selection}</code></span>}
       </div>
       <ResultBox result={st.result} lang={lang} after={ex.kind === 'formula' ? ex.after : undefined} />
