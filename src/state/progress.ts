@@ -21,8 +21,19 @@ export interface TestRecord {
   seconds: number;
   perQuestion: { id: string; ok: boolean; seconds: number }[];
 }
+export interface DailySession {
+  date: string;
+  /** Exercices de la séance, dans l'ordre */
+  items: { id: string; kind: 'new' | 'review' }[];
+  /** Mini-test chronométré de fin de séance */
+  test: string[];
+  testSeconds: number;
+  done: Record<string, boolean>;
+  testResult?: { score: number; max: number; seconds: number };
+}
 export interface Progress {
   v: 1;
+  session?: DailySession;
   lang: Lang;
   langChosen: boolean;
   ex: Record<string, ExRecord>;

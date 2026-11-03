@@ -248,3 +248,32 @@ export function besides(s: SheetSetup, ds: Dataset, startCol: number): SheetSetu
     cols: Math.max(s.cols, t.cols),
   });
 }
+
+export const SERVICES = ['Audit', 'Conseil', 'Juridique', 'Finance'];
+export const CATEGORIES_FRAIS = ['Transport', 'Hôtel', 'Repas', 'Taxi'];
+
+/** Notes de frais d'un cabinet de conseil */
+export function frais(n = 160, seed = 13): Dataset {
+  const r = rng(seed);
+  const collab = ['C. Durand', 'L. Mercier', 'H. Blanc', 'M. Faure', 'S. Roux', 'J. Morel', 'A. Girard', 'N. Lambert'];
+  const rows: Value[][] = [];
+  const base: Record<string, [number, number]> = { Transport: [40, 320], Hôtel: [90, 260], Repas: [12, 85], Taxi: [15, 70] };
+  for (let i = 0; i < n; i++) {
+    const cat = r.weighted(CATEGORIES_FRAIS, [3, 2, 4, 2]);
+    const [a, b] = base[cat];
+    rows.push([`NF-${1001 + i}`, randomDate(r, 2024, 2025), r.pick(collab), r.pick(SERVICES), cat, r.int(a * 100, b * 100) / 100, r.weighted(['Validée', 'Refusée', 'En attente'], [7, 1, 2])]);
+  }
+  return {
+    name: 'Notes de frais',
+    columns: [
+      { name: 'N° note', width: 80 },
+      { name: 'Date', fmt: 'date', width: 90 },
+      { name: 'Collaborateur', width: 110 },
+      { name: 'Service', width: 90 },
+      { name: 'Catégorie', width: 90 },
+      { name: 'Montant', fmt: 'eur', width: 90 },
+      { name: 'Statut', width: 90 },
+    ],
+    rows,
+  };
+}

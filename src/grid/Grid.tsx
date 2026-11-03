@@ -134,6 +134,7 @@ export function Grid(props: GridProps) {
       setEdit(null);
       setActive({ row: props.focusCell.row, col: props.focusCell.col });
       setAnchor({ row: props.focusCell.row, col: props.focusCell.col });
+      rootRef.current?.focus({ preventScroll: true });
     }
   }, [props.focusCell]);
 
@@ -382,10 +383,11 @@ export function Grid(props: GridProps) {
       const cells = [];
       for (let r = sel.start.row; r <= sel.end.row; r++) for (let c = sel.start.col; c <= sel.end.col; c++) cells.push({ row: r, col: c, raw: '' });
       apply(cells);
-    } else if (mod && k.toLowerCase() === 'z') {
+    } else if (mod && (k.toLowerCase() === 'z' || k.toLowerCase() === 'y')) {
       e.preventDefault();
-      const stackFrom = e.shiftKey ? redo.current : undo.current;
-      const stackTo = e.shiftKey ? undo.current : redo.current;
+      const isRedo = e.shiftKey || k.toLowerCase() === 'y';
+      const stackFrom = isRedo ? redo.current : undo.current;
+      const stackTo = isRedo ? undo.current : redo.current;
       const snap = stackFrom.pop();
       if (snap) {
         stackTo.push(model.snapshot());

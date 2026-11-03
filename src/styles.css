@@ -198,3 +198,58 @@ table.pivot tr.total td { font-weight: 700; background: #eef4fa; border-top: 2px
 .choices { display: flex; flex-direction: column; gap: 6px; }
 .choice { display: flex; gap: 8px; align-items: flex-start; border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; background: #fff; cursor: pointer; line-height: 1.4; }
 .choice.on { border-color: var(--green); background: var(--green-soft); }
+.dash { display: grid; grid-template-columns: 2fr 2fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+@media (max-width: 980px) { .dash { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .dash { grid-template-columns: 1fr; } }
+.dash .card { margin-bottom: 0; }
+.dash h2 { margin-top: 0; }
+.stat { display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+.stat .big { font-size: 1.9rem; font-weight: 800; color: var(--green-dark); }
+.mastery { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 8px 24px; }
+.mastery-row { display: grid; grid-template-columns: 1fr 120px 44px; gap: 8px; align-items: center; font-size: 0.92rem; }
+.mastery-pct { text-align: right; color: var(--muted); font-size: 0.85rem; }
+.onboarding ol { line-height: 1.6; }
+.badge { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 1px 8px; border-radius: 99px; background: #e7eaed; color: var(--muted); }
+.badge.new { background: #dcebf7; color: #1f5f99; }
+.badge.review { background: #fff1d6; color: #8a5a00; }
+.badge.test { background: var(--green-soft); color: var(--green-dark); }
+.plan { line-height: 1.5; padding-left: 22px; }
+.plan li { margin-bottom: 6px; }
+.plan li.done { color: var(--ok); }
+.plan li.skipped { color: var(--muted); text-decoration: line-through; }
+.exam-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; }
+.exam-head .btn { margin-left: auto; }
+.timer { font-family: var(--mono); font-size: 1.15rem; font-weight: 700; background: var(--green-soft); color: var(--green-dark); padding: 2px 10px; border-radius: 6px; }
+.timer.low { background: #fdecea; color: var(--danger); }
+.exam-body { display: grid; grid-template-columns: 320px 1fr; gap: 12px; align-items: start; }
+@media (max-width: 900px) { .exam-body { grid-template-columns: 1fr; } }
+.exam-questions { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; max-height: 620px; overflow: auto; }
+.exam-questions li { display: flex; gap: 8px; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; cursor: pointer; font-size: 0.9rem; line-height: 1.35; }
+.exam-questions li.on { border-color: var(--green); background: var(--green-soft); }
+.qnum { font-weight: 800; color: var(--green-dark); }
+.exam-main { min-width: 0; }
+.exam-main .tabs { margin-top: 0; }
+.tabs a { cursor: pointer; }
+.duration { display: flex; gap: 8px; align-items: center; margin: 12px 0 16px; }
+.pill { border: 1px solid var(--line); border-radius: 99px; padding: 4px 12px; cursor: pointer; background: #fff; }
+.pill.on { border-color: var(--green); background: var(--green-soft); }
+.pill input { display: none; }
+table.results { border-collapse: collapse; width: 100%; background: #fff; margin: 12px 0 18px; font-size: 0.92rem; }
+table.results th, table.results td { border: 1px solid var(--line); padding: 7px 9px; vertical-align: top; text-align: left; }
+table.results th { background: var(--head); }
+table.results tr.ok td:first-child { border-left: 4px solid var(--ok); }
+table.results tr.ko td:first-child { border-left: 4px solid var(--danger); }
+.mono { font-family: var(--mono); }
+.print-only { display: none; }
+table.cheat { border-collapse: collapse; width: 100%; background: #fff; font-size: 0.9rem; margin-bottom: 8px; }
+table.cheat th, table.cheat td { border: 1px solid var(--line); padding: 6px 8px; vertical-align: top; text-align: left; }
+table.cheat th { background: var(--head); }
+table.cheat code { white-space: normal; }
+@media print {
+  .print-only { display: block; }
+  .page { max-width: none; padding: 0; }
+  .cheatsheet h2 { break-after: avoid; margin-top: 10px; }
+  table.cheat { font-size: 9.5pt; }
+  table.cheat tr { break-inside: avoid; }
+  code { background: none; padding: 0; }
+}

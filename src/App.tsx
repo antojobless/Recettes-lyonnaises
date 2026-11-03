@@ -7,6 +7,9 @@ import { XlsxButton } from './ui/ExercisePlayer';
 import { ModulePage, Parcours } from './ui/ModulePage';
 import { href, Route, useRoute } from './ui/router';
 import { Home } from './ui/Home';
+import { DailyPage } from './ui/DailyPage';
+import { ExamPage } from './ui/ExamPage';
+import { Cheatsheet } from './ui/Cheatsheet';
 
 function Sandbox() {
   const lang = useStore().progress.lang;
@@ -51,6 +54,15 @@ function Shell() {
       break;
     case 'sandbox':
       page = <Sandbox />;
+      break;
+    case 'seance':
+      page = <DailyPage />;
+      break;
+    case 'test':
+      page = <ExamPage />;
+      break;
+    case 'antiseche':
+      page = <Cheatsheet />;
       break;
     default:
       page = <Home />;
