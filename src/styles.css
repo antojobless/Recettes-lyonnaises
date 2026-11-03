@@ -149,3 +149,13 @@ table.mini th { background: var(--head); }
   .topbar, .no-print { display: none !important; }
   body, .app { background: #fff; }
 }
+.ribbon { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.tool { background: #fafbfc; border: 1px solid var(--line); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 7px; font-size: 0.9rem; }
+.tool-title { font-weight: 700; color: var(--green-dark); font-size: 0.85rem; }
+.tool select, .tool input { font: inherit; padding: 3px 5px; border: 1px solid var(--line); border-radius: 5px; max-width: 100%; }
+.inline { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.num-input { width: 90px; }
+.range-input { width: 110px; font-family: var(--mono); }
+.checks { display: flex; flex-direction: column; max-height: 120px; overflow: auto; border: 1px solid var(--line); border-radius: 5px; background: #fff; padding: 4px 6px; }
+.rule-chip { display: inline-flex; gap: 6px; align-items: center; padding: 2px 8px; border-radius: 99px; font-size: 0.82rem; }
+.rule-chip button { border: 0; background: transparent; color: inherit; padding: 0; }

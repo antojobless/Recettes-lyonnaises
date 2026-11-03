@@ -29,6 +29,11 @@ describe('moteur en français', () => {
     s.setAt('E3', '=CONCAT(B1:B3;"!")');
     expect(s.valueAt('E3')).toBe('NordSudEst!');
   });
+  it('DATEDIF accepte "y" en minuscule comme Excel', () => {
+    const t = new SheetModel('fr', { A1: '15/03/2024', A2: '10/06/2025', B1: '=DATEDIF(A1;A2;"y")', B2: '=DATEDIF(A1;A2;"m")' });
+    expect(t.valueAt('B1')).toBe(1);
+    expect(t.valueAt('B2')).toBe(14);
+  });
   it('erreurs affichées en français avec explication', () => {
     s.setAt('F1', '=SOM(A1:A3)');
     const i = s.info(0, 5);

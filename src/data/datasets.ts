@@ -188,12 +188,63 @@ export function layout(ds: Dataset, opts: { startCol?: number; extraCols?: Colum
   return { cells, fmts, colWidths, rows: Math.max(ds.rows.length + 8, 25), cols: Math.max(start + cols.length + 4, 10) };
 }
 
+/** Agrandit la grille pour que toutes les cellules utilisées soient visibles (avec de la marge). */
+export function fit(s: SheetSetup): SheetSetup {
+  let rows = s.rows;
+  let cols = s.cols;
+  for (const a of [...Object.keys(s.cells), ...Object.keys(s.fmts)]) {
+    const m = /^([A-Z]+)(\d+)$/.exec(a);
+    if (!m) continue;
+    let c = 0;
+    for (const ch of m[1]) c = c * 26 + ch.charCodeAt(0) - 64;
+    rows = Math.max(rows, Number(m[2]) + 5);
+    cols = Math.max(cols, c + 2);
+  }
+  return { ...s, rows, cols };
+}
+
 /** Ajoute des cellules (libellés, paramètres) à une feuille. */
 export function withCells(s: SheetSetup, cells: SheetInit, fmts: Record<string, Fmt> = {}, widths: Record<number, number> = {}): SheetSetup {
-  return { ...s, cells: { ...s.cells, ...cells }, fmts: { ...s.fmts, ...fmts }, colWidths: { ...s.colWidths, ...widths } };
+  return fit({ ...s, cells: { ...s.cells, ...cells }, fmts: { ...s.fmts, ...fmts }, colWidths: { ...s.colWidths, ...widths } });
 }
 
 /** Petit tableau fait main. */
 export function table(columns: Column[], rows: Value[][]): Dataset {
   return { name: 'Tableau', columns, rows };
+}
+
+/** Commandes avec une colonne Montant HT déjà calculée (valeurs). */
+export function commandesMontant(n = 120, seed = 42): Dataset {
+  const d = commandes(n, seed);
+  return {
+    ...d,
+    columns: [...d.columns, { name: 'Montant HT', fmt: 'eur', width: 110 }],
+    rows: d.rows.map((r) => [...r, (r[5] as number) * (r[6] as number)]),
+  };
+}
+
+export const SEGMENTS = ['Grand compte', 'ETI', 'PME'];
+export const VILLES = ['Lyon', 'Paris', 'Lille', 'Marseille', 'Bordeaux', 'Nantes', 'Toulouse', 'Strasbourg'];
+
+/** Fiche clients (pour les recherches). `exclude` retire des clients pour provoquer des #N/A. */
+export function clientsTable(seed = 5, exclude: string[] = []): Dataset {
+  const r = rng(seed);
+  const rows = CLIENTS.filter((c) => !exclude.includes(c)).map((c) => [c, r.weighted(SEGMENTS, [2, 3, 3]), r.pick(COMMERCIAUX), r.pick(VILLES)] as Value[]);
+  return {
+    name: 'Clients',
+    columns: [{ name: 'Client', width: 130 }, { name: 'Segment', width: 100 }, { name: 'Commercial', width: 90 }, { name: 'Ville', width: 90 }],
+    rows,
+  };
+}
+
+/** Place un second tableau à partir d'une colonne donnée (ex. une table de référence à droite). */
+export function besides(s: SheetSetup, ds: Dataset, startCol: number): SheetSetup {
+  const t = layout(ds, { startCol });
+  return fit({
+    cells: { ...s.cells, ...t.cells },
+    fmts: { ...s.fmts, ...t.fmts },
+    colWidths: { ...s.colWidths, ...t.colWidths },
+    rows: Math.max(s.rows, t.rows),
+    cols: Math.max(s.cols, t.cols),
+  });
 }

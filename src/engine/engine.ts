@@ -19,6 +19,8 @@ export function hfConfig(lang: Lang): Partial<ConfigParams> {
     dateFormats: ['DD/MM/YYYY', 'DD/MM/YY'],
     currencySymbol: ['€'],
     evaluateNullToZero: true,
+    // Excel distingue « Gagné » de « Gagne » (mais pas les majuscules).
+    accentSensitive: true,
   };
   return lang === 'fr'
     ? { ...common, language: 'frFR', functionArgSeparator: ';', decimalSeparator: ',', thousandSeparator: ' ', arrayColumnSeparator: ';', arrayRowSeparator: '|', localeLang: 'fr-FR' }

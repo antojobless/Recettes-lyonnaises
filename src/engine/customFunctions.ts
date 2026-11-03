@@ -63,6 +63,20 @@ export function registerCustomFunctions(): void {
     CONCAT: { method: 'concat', repeatLastArgs: 1, parameters: [{ argumentType: textjoinMeta.parameters[2].argumentType }] },
   };
 
+  // DATEDIF : Excel accepte l'unité en minuscule ("y", "m", "d"), HyperFormula non.
+  const DatePlugin = HyperFormula.getFunctionPlugin('DATEDIF') as any;
+  class DatedifPlugin extends DatePlugin {
+    datedifAnyCase(ast: any, state: any) {
+      const a = ast.args?.[2];
+      const fixed = a && a.type === 'STRING' && typeof a.value === 'string' ? { ...ast, args: [ast.args[0], ast.args[1], { ...a, value: a.value.toUpperCase() }] } : ast;
+      return (this as any).datedif(fixed, state);
+    }
+  }
+  (DatedifPlugin as any).implementedFunctions = {
+    DATEDIF: { ...DatePlugin.implementedFunctions.DATEDIF, method: 'datedifAnyCase' },
+  };
+  HyperFormula.registerFunction('DATEDIF', DatedifPlugin as any, { enGB: { DATEDIF: 'DATEDIF' }, frFR: { DATEDIF: 'DATEDIF' } });
+
   const tr = (key: string) => ({
     enGB: { [key]: key },
     frFR: { [key]: CUSTOM_FUNCTIONS[key] },
