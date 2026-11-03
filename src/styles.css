@@ -1,0 +1,65 @@
+:root {
+  --green: #107c41;
+  --green-dark: #0b5a2f;
+  --green-soft: #e6f2ea;
+  --bg: #f5f6f7;
+  --panel: #ffffff;
+  --text: #1d2329;
+  --muted: #5d6670;
+  --line: #d9dde1;
+  --grid-line: #e1e4e7;
+  --head: #f0f2f4;
+  --head-hl: #d3e8db;
+  --danger: #c62828;
+  --warn: #b26a00;
+  --ok: #178a3a;
+  --radius: 10px;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); }
+code, .mono { font-family: var(--mono); font-size: 0.92em; background: #eef0f2; padding: 1px 5px; border-radius: 4px; }
+button { font: inherit; cursor: pointer; }
+a { color: var(--green-dark); }
+h1 { font-size: 1.6rem; margin: 0 0 12px; }
+h2 { font-size: 1.25rem; margin: 18px 0 10px; }
+h3 { font-size: 1.05rem; margin: 14px 0 8px; }
+
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+.topbar { background: var(--green); color: #fff; display: flex; align-items: center; gap: 16px; padding: 10px 20px; flex-wrap: wrap; }
+.topbar strong { font-size: 1.1rem; }
+.page { max-width: 1200px; width: 100%; margin: 0 auto; padding: 20px 16px 60px; }
+
+/* ---------- grille ---------- */
+.grid-wrap { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.formula-bar { display: flex; align-items: center; gap: 6px; padding: 6px; border-bottom: 1px solid var(--line); background: #fafbfc; }
+.name-box { width: 84px; flex: none; border: 1px solid var(--line); border-radius: 4px; padding: 3px 6px; font-family: var(--mono); font-size: 13px; background: #fff; text-align: center; }
+.fx { color: var(--muted); font-style: italic; font-family: Georgia, serif; padding: 0 4px; }
+.bar-input { flex: 1; border: 1px solid var(--line); border-radius: 4px; background: #fff; }
+.finput { position: relative; font-family: var(--mono); font-size: 13px; }
+.finput-mirror, .finput-input { font: inherit; padding: 3px 6px; margin: 0; border: 0; white-space: pre; letter-spacing: 0; line-height: 18px; }
+.finput-mirror { position: absolute; inset: 0; overflow: hidden; color: var(--text); pointer-events: none; }
+.finput-input { position: relative; width: 100%; background: transparent; color: transparent; caret-color: var(--text); outline: none; }
+.finput-input::selection { background: rgba(31, 111, 209, 0.25); color: transparent; }
+
+.grid-root { outline: none; position: relative; }
+.grid-scroll { overflow: auto; position: relative; user-select: none; }
+.grid-canvas { position: relative; font-size: 13px; }
+.g-corner, .g-colhead { position: sticky; top: 0; z-index: 3; background: var(--head); border-right: 1px solid var(--grid-line); border-bottom: 1px solid var(--line); }
+.g-corner { position: sticky; left: 0; z-index: 4; float: left; }
+.g-colhead { position: absolute; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; gap: 2px; }
+.g-colhead.hl, .g-rowhead.hl { background: var(--head-hl); color: var(--green-dark); font-weight: 600; }
+.g-row { position: absolute; left: 0; right: 0; }
+.g-rowhead { position: sticky; left: 0; z-index: 2; height: 100%; background: var(--head); border-right: 1px solid var(--line); border-bottom: 1px solid var(--grid-line); display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; }
+.g-cell { position: absolute; top: 0; height: 100%; border-right: 1px solid var(--grid-line); border-bottom: 1px solid var(--grid-line); padding: 0 5px; line-height: 23px; white-space: nowrap; overflow: hidden; text-overflow: clip; background: #fff; }
+.g-cell.num { text-align: right; }
+.g-cell.err { color: var(--danger); text-align: center; }
+.g-cell.target { background: #fff8e1; outline: 2px dashed #f0b400; outline-offset: -3px; }
+.active-rect { position: absolute; border: 2px solid var(--green); pointer-events: none; z-index: 5; }
+.sel-rect { position: absolute; background: rgba(16, 124, 65, 0.1); border: 1px solid var(--green); pointer-events: none; z-index: 4; }
+.ref-hl { position: absolute; border: 2px solid; pointer-events: none; z-index: 5; }
+.cell-editor { position: absolute; z-index: 8; height: 24px; background: #fff; box-shadow: 0 0 0 2px var(--green), 0 2px 8px rgba(0,0,0,0.15); }
+.cell-editor .finput-mirror, .cell-editor .finput-input { padding: 2px 5px; }
