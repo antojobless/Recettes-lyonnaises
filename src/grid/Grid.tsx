@@ -1,6 +1,6 @@
 import { KeyboardEvent, MouseEvent, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { CellInfo, SheetModel } from '../engine/engine';
-import { addr, colName, findRefs, isPointable } from '../engine/formula';
+import { addr, colName, findRefs, isPointable, shiftFormula, toggleAbsoluteAt } from '../engine/formula';
 import { FormulaInput, REF_COLORS } from './FormulaInput';
 
 export interface Pos {
@@ -63,7 +63,10 @@ export function Grid(props: GridProps) {
   const [active, setActive] = useState<Pos>({ row: 0, col: 0 });
   const [anchor, setAnchor] = useState<Pos>({ row: 0, col: 0 });
   const [edit, setEdit] = useState<EditState | null>(null);
-  const drag = useRef<null | 'select' | 'point'>(null);
+  const drag = useRef<null | 'select' | 'point' | 'fill'>(null);
+  const [fillTo, setFillTo] = useState<Pos | null>(null);
+  const fillRef = useRef<Pos | null>(null);
+  const clip = useRef<{ range: Range; cells: string[][] } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const cellInput = useRef<HTMLInputElement>(null);
@@ -251,8 +254,98 @@ export function Grid(props: GridProps) {
     }
   };
 
-  // Point d'extension pour les raccourcis ajoutés plus tard (F4…)
-  const extraEditKey = (_e: KeyboardEvent<HTMLInputElement>, _cur: EditState): boolean => false;
+  // F4 (fn+F4 sur Mac) ou Cmd+T : rotation des $ sur la référence sous le curseur
+  const extraEditKey = (e: KeyboardEvent<HTMLInputElement>, cur: EditState): boolean => {
+    if (e.key === 'F4' || ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 't')) {
+      toggleAbs(cur);
+      return true;
+    }
+    return false;
+  };
+
+  const toggleAbs = (cur: EditState) => {
+    const r = toggleAbsoluteAt(cur.text, cur.caret, lang);
+    setEdit({ ...cur, text: r.text, caret: r.caret, point: undefined });
+  };
+
+  // ---- recopie ----
+  /** Recopie le contenu de src sur dest (formules décalées comme dans Excel). */
+  const fill = (src: Range, dest: Range) => {
+    const s0 = norm(src);
+    const d = norm(dest);
+    const h = s0.end.row - s0.start.row + 1;
+    const w = s0.end.col - s0.start.col + 1;
+    const cells = [];
+    for (let r = d.start.row; r <= d.end.row; r++)
+      for (let c = d.start.col; c <= d.end.col; c++) {
+        if (r >= s0.start.row && r <= s0.end.row && c >= s0.start.col && c <= s0.end.col) continue;
+        if (hiddenRows?.has(r)) continue;
+        const sr = s0.start.row + ((((r - s0.start.row) % h) + h) % h);
+        const sc = s0.start.col + ((((c - s0.start.col) % w) + w) % w);
+        cells.push({ row: r, col: c, raw: shiftFormula(model.getRaw(sr, sc), r - sr, c - sc, lang) });
+      }
+    apply(cells);
+  };
+
+  const fillDown = () => {
+    if (sel.start.row === sel.end.row) {
+      if (sel.start.row === 0) return;
+      fill({ start: { row: sel.start.row - 1, col: sel.start.col }, end: { row: sel.start.row - 1, col: sel.end.col } }, { start: { row: sel.start.row - 1, col: sel.start.col }, end: sel.end });
+    } else fill({ start: sel.start, end: { row: sel.start.row, col: sel.end.col } }, sel);
+  };
+
+  const finishFill = (to: Pos | null) => {
+    if (!to) return;
+    let dest: Range;
+    if (to.row > sel.end.row) dest = { start: sel.start, end: { row: to.row, col: sel.end.col } };
+    else if (to.row < sel.start.row) dest = { start: { row: to.row, col: sel.start.col }, end: sel.end };
+    else if (to.col > sel.end.col) dest = { start: sel.start, end: { row: sel.end.row, col: to.col } };
+    else if (to.col < sel.start.col) dest = { start: { row: sel.start.row, col: to.col }, end: sel.end };
+    else return;
+    fill(sel, dest);
+    setAnchor(norm(dest).start);
+    setActive(norm(dest).end);
+  };
+
+  /** Double-clic sur la poignée : recopie jusqu'à la fin des données de la colonne voisine. */
+  const fillToDataEnd = () => {
+    const has = (r: number, c: number) => c >= 0 && c < cols && model.getRaw(r, c) !== '';
+    let last = sel.end.row;
+    const probe = has(sel.end.row, sel.start.col - 1) || has(sel.end.row + 1, sel.start.col - 1) ? sel.start.col - 1 : sel.end.col + 1;
+    while (last + 1 < rows && has(last + 1, probe)) last++;
+    if (last > sel.end.row) finishFill({ row: last, col: sel.end.col });
+  };
+
+  const copy = () => {
+    const cells: string[][] = [];
+    for (let r = sel.start.row; r <= sel.end.row; r++) {
+      const line = [];
+      for (let c = sel.start.col; c <= sel.end.col; c++) line.push(model.getRaw(r, c));
+      cells.push(line);
+    }
+    clip.current = { range: sel, cells };
+  };
+
+  const paste = () => {
+    const cb = clip.current;
+    if (!cb) return;
+    const h = cb.cells.length;
+    const w = cb.cells[0].length;
+    // Si la sélection est un multiple de la zone copiée, on la remplit entièrement (comme Excel).
+    const selH = sel.end.row - sel.start.row + 1;
+    const selW = sel.end.col - sel.start.col + 1;
+    const H = selH % h === 0 ? selH : h;
+    const W = selW % w === 0 ? selW : w;
+    const out = [];
+    for (let i = 0; i < H; i++)
+      for (let j = 0; j < W; j++) {
+        const r = sel.start.row + i;
+        const c = sel.start.col + j;
+        if (r >= rows || c >= cols) continue;
+        out.push({ row: r, col: c, raw: shiftFormula(cb.cells[i % h][j % w], r - (cb.range.start.row + (i % h)), c - (cb.range.start.col + (j % w)), lang) });
+      }
+    apply(out);
+  };
 
   // ---- clavier : navigation ----
   const onGridKey = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -302,7 +395,15 @@ export function Grid(props: GridProps) {
     }
   };
 
-  const extraGridKey = (_e: KeyboardEvent<HTMLDivElement>): boolean => false;
+  const extraGridKey = (e: KeyboardEvent<HTMLDivElement>): boolean => {
+    const mod = e.metaKey || e.ctrlKey;
+    const k = e.key.toLowerCase();
+    if (mod && k === 'd') fillDown();
+    else if (mod && k === 'c') copy();
+    else if (mod && k === 'v') paste();
+    else return false;
+    return true;
+  };
 
   // ---- souris ----
   const cellAt = (e: MouseEvent): Pos | null => {
@@ -337,11 +438,24 @@ export function Grid(props: GridProps) {
     const p = cellAt(e);
     if (!p) return;
     if (drag.current === 'select') setActive(p);
+    else if (drag.current === 'fill') {
+      fillRef.current = p;
+      setFillTo(p);
+    }
     else if (drag.current === 'point' && edit?.point) pointTo(edit, edit.point.anchor, p);
   };
 
+  const finishFillRef = useRef(finishFill);
+  finishFillRef.current = finishFill;
   useEffect(() => {
-    const up = () => (drag.current = null);
+    const up = () => {
+      if (drag.current === 'fill') {
+        finishFillRef.current(fillRef.current);
+        fillRef.current = null;
+        setFillTo(null);
+      }
+      drag.current = null;
+    };
     window.addEventListener('mouseup', up);
     return () => window.removeEventListener('mouseup', up);
   }, []);
@@ -385,6 +499,20 @@ export function Grid(props: GridProps) {
           onCaret={(caret) => edit && caret !== edit.caret && setEdit({ ...edit, caret, point: undefined })}
           onKeyDown={onEditKey}
         />
+        <button
+          className="dollar-btn"
+          title="Bloquer la référence avec des $ (F4, ou fn+F4 sur Mac ; Cmd+T dans le vrai Excel)"
+          data-testid="dollar-btn"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            if (readOnly) return;
+            const el = edit ? (edit.where === 'cell' ? cellInput.current : barInput.current) : null;
+            if (edit) toggleAbs({ ...edit, caret: el?.selectionStart ?? edit.caret });
+            else if (activeInfo?.isFormula) toggleAbs({ text: activeInfo.raw, caret: activeInfo.raw.length, mode: 'edit', where: 'cell' });
+          }}
+        >
+          $
+        </button>
       </div>
       <div
         className="grid-root"
@@ -440,6 +568,32 @@ export function Grid(props: GridProps) {
             })}
             {selRect && multi && <div className="sel-rect" style={selRect} />}
             {activeRect && <div className="active-rect" style={activeRect} />}
+            {fillTo && selRect && (() => {
+              const fr = rectOf({ start: sel.start, end: { row: Math.max(fillTo.row, sel.end.row), col: Math.max(fillTo.col, sel.end.col) } });
+              return fr ? <div className="fill-preview" style={fr} /> : null;
+            })()}
+            {!edit && !readOnly && selRect && (
+              <div
+                className="fill-handle"
+                data-testid="fill-handle"
+                title="Poignée de recopie : fais glisser (ou double-clique) pour recopier"
+                style={{ left: selRect.left + selRect.width - 4, top: selRect.top + selRect.height - 4 }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  drag.current = 'fill';
+                }}
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  fillToDataEnd();
+                }}
+              />
+            )}
+            {!edit && activeInfo?.error && activeRect && (
+              <div className="err-bubble" data-testid="error-bubble" style={{ left: activeRect.left, top: activeRect.top + activeRect.height + 4 }}>
+                <strong>{activeInfo.error.text}</strong> {activeInfo.error.explanation}
+              </div>
+            )}
             {edit && edit.where === 'cell' && activeRect && (
               <FormulaInput
                 ref={cellInput}

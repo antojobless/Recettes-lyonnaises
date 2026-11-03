@@ -63,3 +63,9 @@ h3 { font-size: 1.05rem; margin: 14px 0 8px; }
 .ref-hl { position: absolute; border: 2px solid; pointer-events: none; z-index: 5; }
 .cell-editor { position: absolute; z-index: 8; height: 24px; background: #fff; box-shadow: 0 0 0 2px var(--green), 0 2px 8px rgba(0,0,0,0.15); }
 .cell-editor .finput-mirror, .cell-editor .finput-input { padding: 2px 5px; }
+.dollar-btn { flex: none; border: 1px solid var(--line); background: #fff; border-radius: 4px; font-family: var(--mono); font-weight: 700; width: 30px; height: 26px; color: var(--green-dark); }
+.dollar-btn:hover { background: var(--green-soft); }
+.fill-handle { position: absolute; width: 8px; height: 8px; background: var(--green); border: 1px solid #fff; z-index: 7; cursor: crosshair; }
+.fill-preview { position: absolute; border: 2px dashed var(--muted); pointer-events: none; z-index: 6; }
+.err-bubble { position: absolute; z-index: 9; max-width: 340px; background: #fff4f2; border: 1px solid #f2b8ad; color: #7a1d10; padding: 6px 9px; border-radius: 6px; font-size: 12.5px; line-height: 1.35; box-shadow: 0 3px 10px rgba(0,0,0,0.12); pointer-events: none; white-space: normal; }
+.g-cell.err::before { content: ''; position: absolute; left: 0; top: 0; border-top: 6px solid var(--danger); border-right: 6px solid transparent; }

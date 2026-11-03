@@ -5,7 +5,7 @@ import { Grid } from './grid/Grid';
 
 export function App() {
   const [lang] = useState<Lang>('fr');
-  const model = useMemo(() => new SheetModel(lang, { A1: 5, A2: 7, A3: 12, B1: '=SOMME(A1:A3)', B2: '=SI(A1>10;"oui";"non")' }), [lang]);
+  const model = useMemo(() => new SheetModel(lang, { A1: 'Prix HT', A2: 100, A3: 250, A4: 80, A5: 40, B1: 'TVA', D1: 'Taux', E1: '20%' }), [lang]);
   return (
     <div className="app">
       <header className="topbar">
