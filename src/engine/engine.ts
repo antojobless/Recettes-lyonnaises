@@ -61,7 +61,8 @@ export class SheetModel {
     this.lang = lang;
     for (const [a, v] of Object.entries(init)) {
       const { row, col } = parseAddr(a);
-      this.raw.set(key(row, col), literal(v, lang));
+      const raw = literal(v, lang);
+      if (raw !== '') this.raw.set(key(row, col), raw);
     }
     for (const [a, f] of Object.entries(fmts)) {
       const { row, col } = parseAddr(a);

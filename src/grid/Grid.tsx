@@ -38,6 +38,8 @@ export interface GridProps {
   hiddenRows?: Set<number>;
   /** Clic sur un en-tête de colonne (tri / filtre) */
   headerExtra?: (col: number) => React.ReactNode;
+  /** Place la cellule active (exemple résolu) */
+  focusCell?: { row: number; col: number; n: number };
 }
 
 const ROW_H = 24;
@@ -126,6 +128,14 @@ export function Grid(props: GridProps) {
   useEffect(() => {
     onSelect?.(sel);
   }, [sel, onSelect]);
+
+  useEffect(() => {
+    if (props.focusCell) {
+      setEdit(null);
+      setActive({ row: props.focusCell.row, col: props.focusCell.col });
+      setAnchor({ row: props.focusCell.row, col: props.focusCell.col });
+    }
+  }, [props.focusCell]);
 
   // Garde la cellule active visible
   useEffect(() => {
