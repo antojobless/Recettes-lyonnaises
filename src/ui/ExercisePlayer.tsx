@@ -121,10 +121,14 @@ function GridExercise(props: PlayerProps & { ex: FormulaExercise | SelectExercis
     return s;
   }, [ex]);
   const model = useMemo(() => modelFromSetup(setup, lang), [setup, resetKey]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => model.setLang(lang), [model, lang]);
+  const [, setTick] = useState(0);
+  // Bascule FR/EN : les formules déjà tapées sont traduites, rien n'est perdu.
+  useEffect(() => {
+    model.setLang(lang);
+    setTick((t) => t + 1);
+  }, [model, lang]);
   const expected = useMemo(() => (ex.kind === 'formula' ? expectedValues(ex) : null), [ex]);
   const [selection, setSelection] = useState('A1');
-  const [, setTick] = useState(0);
   const onSelect = useCallback((r: Range) => setSelection(rangeLabel(r)), []);
 
   const targets = ex.kind === 'formula' ? ex.targets.map((t) => t.cell) : [];

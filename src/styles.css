@@ -253,3 +253,6 @@ table.cheat code { white-space: normal; }
   table.cheat tr { break-inside: avoid; }
   code { background: none; padding: 0; }
 }
+.lang-toggle { display: inline-flex; background: rgba(255,255,255,0.15); border-radius: 8px; padding: 2px; }
+.lang-toggle button { border: 0; background: transparent; color: #e6f2ea; font-weight: 700; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; }
+.lang-toggle button.on { background: #fff; color: var(--green-dark); }

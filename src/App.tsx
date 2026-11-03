@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { SheetModel } from './engine/engine';
 import { Grid } from './grid/Grid';
 import { ProgressProvider, useStore } from './state/store';
@@ -10,13 +10,16 @@ import { Home } from './ui/Home';
 import { DailyPage } from './ui/DailyPage';
 import { ExamPage } from './ui/ExamPage';
 import { Cheatsheet } from './ui/Cheatsheet';
+import { LangToggle, Settings } from './ui/Settings';
 
 function Sandbox() {
   const lang = useStore().progress.lang;
-  const model = useMemo(
-    () => new SheetModel(lang, { A1: 'Prix HT', A2: 100, A3: 250, A4: 80, A5: 40, B1: 'TVA', D1: 'Taux', E1: '20%' }),
-    [lang],
-  );
+  const model = useMemo(() => new SheetModel(lang, { A1: 'Prix HT', A2: 100, A3: 250, A4: 80, A5: 40, B1: 'TVA', D1: 'Taux', E1: '20%' }), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    model.setLang(lang);
+    setTick((t) => t + 1);
+  }, [model, lang]);
   return (
     <div>
       <h1>Bac à sable</h1>
@@ -36,6 +39,7 @@ const NAV: [Route['page'], string][] = [
   ['test', 'Test d’entreprise'],
   ['antiseche', 'Antisèche'],
   ['sandbox', 'Bac à sable'],
+  ['reglages', 'Réglages'],
 ];
 
 function Shell() {
@@ -64,6 +68,9 @@ function Shell() {
     case 'antiseche':
       page = <Cheatsheet />;
       break;
+    case 'reglages':
+      page = <Settings />;
+      break;
     default:
       page = <Home />;
   }
@@ -81,6 +88,9 @@ function Shell() {
             </a>
           ))}
         </nav>
+        <div className="topbar-right">
+          <LangToggle />
+        </div>
       </header>
       {!saveOk && <div className="warn-box center">Ton navigateur bloque l’enregistrement : ta progression sera perdue en fermant la page. Pense à l’exporter (Réglages).</div>}
       <main className="page">{page}</main>
